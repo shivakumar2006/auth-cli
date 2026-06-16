@@ -1,0 +1,32 @@
+services:
+  postgres:
+    image: "postgres:17"
+
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: authdb
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    ports:
+      - "5432:5432"
+
+  auth-cli:
+    build: .
+    depends_on:
+      - postgres_data
+
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: authuser
+      DB_PASSWORD: authpass
+      DB_NAME: authdb
+
+    stdin_open: true
+    tty: true
+
+volumes:
+  postgres_data:
