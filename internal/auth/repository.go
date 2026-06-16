@@ -118,3 +118,71 @@ func (d *Database) UpdateLastLogin(userID int64) error {
 
 	return nil
 }
+
+func (d *Database) EnableMFA(userID int64, secret string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	_, err := d.Db.ExecContext(ctx, `
+		UPDATE users
+		SET mfa_enabled = true, mfa_secret = $1
+		WHERE id = $2
+	`, secret, userID)
+
+	if err != nil {
+		return fmt.Errorf("failed to enable MFA : %s", err.Error())
+	}
+
+	return nil
+}
+
+func (d *Database) DisableMFA(userID int64) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	_, err := d.Db.ExecContext(ctx, `
+		UPDATE users
+		SET mfa_enabled = false, mfa_secret = NULL
+		WHERE id = $1
+	`, userID)
+
+	if err != nil {
+		return fmt.Errorf("failed to disable MFA : %s", err.Error())
+	}
+
+	return nil
+}
+
+func (d *Database) IncrementFailedAttempts(userID int64) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	_, err := d.Db.ExecContext(ctx, `
+		UPDATE users
+		SET failed_attempts = failed_attempts + 1
+		WHERE id = $1
+	`, userID)
+
+	if err != nil {
+		return fmt.Errorf("failed to increment failed attempts : %s", err.Error())
+	}
+
+	return nil
+}
+
+func (d *Database) ResetFailedAttempts(userID int64) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	_, err := d.Db.ExecContext(ctx, `
+		UPDATE users
+		SET failed_attempts = 0, locked_until = NULL
+		WHERE id = $1
+	`, userID)
+
+	if err != nil {
+		return fmt.Errorf("failed to reset failed attempts : %s", err.Error())
+	}
+
+	return nil
+}

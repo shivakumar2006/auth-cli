@@ -1,11 +1,24 @@
 package auth
 
 import (
-	"auth-cli/internal/auth/storage"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 )
+
+type Storage interface {
+	CreateUser(user *User) error
+	GetUserByUsername(username string) (*User, error)
+	UpdateUser(user *User) error
+	UpdateLastLogin(userID int64) error
+
+	EnableMFA(userID int64, secret string) error
+	DisableMFA(userID int64) error
+
+	IncrementFailedAttempts(userID int64) error
+	ResetFailedAttempts(userID int64) error
+}
 
 var (
 	ErrAccountLocked = errors.New("account is temporarily locked")
@@ -17,10 +30,10 @@ const (
 )
 
 type Service struct {
-	Storage storage.Storage
+	Storage Storage
 }
 
-func NewService(storage storage.Storage) *Service {
+func NewService(storage Storage) *Service {
 	return &Service{
 		Storage: storage,
 	}
@@ -30,6 +43,16 @@ func (s *Service) Register(username string, password string) error {
 	// validate password strength
 	if err := ValidatePassword(password); err != nil {
 		return fmt.Errorf("invalid password : %s", err.Error())
+	}
+
+	if strings.TrimSpace(username) == "" {
+		return errors.New("username cannot be empty")
+	}
+
+	if len(username) < 3 {
+		return errors.New(
+			"username must be at least 3 characters",
+		)
 	}
 
 	// check if the user is already exist or not
@@ -68,7 +91,7 @@ func (s *Service) Register(username string, password string) error {
 func (s *Service) Login(username, password string) (*User, error) {
 	user, err := s.Storage.GetUserByUsername(username)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get user by username : %s", err.Error())
+		return nil, err
 	}
 
 	// account locked
