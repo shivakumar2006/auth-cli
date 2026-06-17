@@ -39,9 +39,32 @@ func NewPostgresConnection() (*sql.DB, error) {
 	db.SetMaxIdleConns(5)
 	db.SetConnMaxLifetime(5 * time.Minute)
 
-	if err := db.Ping(); err != nil {
-		return nil, err
+	for i := 0; i < 10; i++ {
+		if err := db.Ping(); err == nil {
+			return db, nil
+		}
+
+		time.Sleep(2 * time.Second)
 	}
 
 	return db, nil
+}
+
+// helper function
+func BuildDatabaseURL() string {
+
+	host := os.Getenv("DB_HOST")
+	port := os.Getenv("DB_PORT")
+	user := os.Getenv("DB_USER")
+	password := os.Getenv("DB_PASSWORD")
+	dbname := os.Getenv("DB_NAME")
+
+	return fmt.Sprintf(
+		"postgres://%s:%s@%s:%s/%s?sslmode=disable",
+		user,
+		password,
+		host,
+		port,
+		dbname,
+	)
 }

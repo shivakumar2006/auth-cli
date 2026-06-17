@@ -16,13 +16,13 @@ services:
   auth-cli:
     build: .
     depends_on:
-      - postgres_data
+      - postgres
 
     environment:
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_USER: authuser
-      DB_PASSWORD: authpass
+      DB_USER: postgres
+      DB_PASSWORD: root
       DB_NAME: authdb
 
     stdin_open: true

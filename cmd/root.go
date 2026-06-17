@@ -23,9 +23,11 @@ func SetDependencies(d *Dependencies) {
 }
 
 var RootCmd = &cobra.Command{
-	Use:   "auth-cli",
-	Short: "Contanerized CLI Authentication System",
-	Long:  "A CLI authentication system with MFA, sessions and PostgreSQL persistence.",
+	Use:           "auth-cli",
+	Short:         "Contanerized CLI Authentication System",
+	Long:          "A CLI authentication system with MFA, sessions and PostgreSQL persistence.",
+	SilenceUsage:  true,
+	SilenceErrors: true,
 }
 
 func Execute() error {
