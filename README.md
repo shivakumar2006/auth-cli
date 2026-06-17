@@ -53,8 +53,6 @@ A secure, containerized Command-Line Authentication System built with Go, Postgr
 
 ## Demo Video
 
-Add your demo video link here:
-
 ```text
 https://your-demo-video-link
 ```
