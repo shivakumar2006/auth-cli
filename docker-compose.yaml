@@ -11,7 +11,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
 
     ports:
-      - "5432:5432"
+      - "5433:5432"
 
   auth-cli:
     build: .
@@ -27,6 +27,8 @@ services:
 
     stdin_open: true
     tty: true
+
+    command: ./auth-cli
 
 volumes:
   postgres_data:

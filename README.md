@@ -19,7 +19,9 @@ A secure, containerized Command-Line Authentication System built with Go, Postgr
 - Optional TOTP-based MFA
 - Google Authenticator Compatible
 - QR Code Generation
-- Enable / Disable MFA
+- Enable MFA
+- Verify MFA
+- Disable MFA
 
 ### Session Management
 
@@ -46,6 +48,16 @@ A secure, containerized Command-Line Authentication System built with Go, Postgr
 - Docker
 - Docker Compose
 - Persistent PostgreSQL Volume
+
+---
+
+## Demo Video
+
+Add your demo video link here:
+
+```text
+https://your-demo-video-link
+```
 
 ---
 
@@ -78,6 +90,7 @@ auth-cli/
 │   ├── logout.go
 │   ├── whoami.go
 │   ├── enable2fa.go
+│   ├── verify2fa.go
 │   ├── disable2fa.go
 │   └── help.go
 │
@@ -112,7 +125,8 @@ auth-cli/
 │   ├── 002_create_sessions.up.sql
 │   └── 002_create_sessions.down.sql
 │
-├── qrcodes/
+├── data/
+│   └── qrcodes/
 │
 ├── Dockerfile
 ├── docker-compose.yml
@@ -208,9 +222,9 @@ Generate QR Code
 ↓
 Scan QR
 ↓
-Enter OTP
+Generate OTP
 ↓
-Verify
+Verify OTP
 ↓
 MFA Enabled
 ```
@@ -224,7 +238,7 @@ A unique UUID session token is generated after login.
 ```text
 Login
 ↓
-UUID Token
+UUID Session Token
 ↓
 Database Session
 ↓
@@ -239,33 +253,43 @@ Expired sessions are automatically invalidated.
 
 ## Before Login
 
-### register
-
-Create a new user account.
+### Register User
 
 ```bash
-register
+register <username> <password>
 ```
 
-### login
-
-Login using username and password.
+Example:
 
 ```bash
-login
+register shiva Shiva123
 ```
 
-### help
+---
 
-Show available commands.
+### Login User
+
+```bash
+login <username> <password>
+```
+
+Example:
+
+```bash
+login shiva Shiva123
+```
+
+---
+
+### Show Help
 
 ```bash
 help
 ```
 
-### exit
+---
 
-Exit the application.
+### Exit Application
 
 ```bash
 exit
@@ -275,47 +299,58 @@ exit
 
 ## After Login
 
-### whoami
-
-Display current user information.
+### Show Current User
 
 ```bash
 whoami
 ```
 
-Shows:
+Displays:
 
 - Username
 - Registration Date
 - MFA Status
-- Session Expiration
-- Last Login
+- Session Expiration Time
+- Last Login Time
 
 ---
 
-### enable-2fa
-
-Enable Multi-Factor Authentication.
+### Enable MFA
 
 ```bash
 enable-2fa
 ```
 
+Generates:
+
+- TOTP Secret
+- QR Code
+
 ---
 
-### disable-2fa
-
-Disable Multi-Factor Authentication.
+### Verify MFA
 
 ```bash
-disable-2fa
+verify-2fa <otp>
+```
+
+Example:
+
+```bash
+verify-2fa 123456
 ```
 
 ---
 
-### logout
+### Disable MFA
 
-Terminate current session.
+```bash
+disable-2fa yes
+```
+
+---
+
+### Logout
 
 ```bash
 logout
@@ -343,7 +378,7 @@ go mod tidy
 
 ---
 
-## Environment Variables
+## Configure Environment Variables
 
 ```env
 DB_HOST=localhost
@@ -365,16 +400,124 @@ go run .
 
 # Running with Docker
 
-Build and start containers:
+## Build Containers
 
 ```bash
-docker compose up --build
+docker compose build
 ```
 
-Stop containers:
+---
+
+## Start Services
+
+```bash
+docker compose up -d
+```
+
+This starts:
+
+- PostgreSQL Container
+- Auth CLI Container
+
+---
+
+## Launch Interactive CLI
+
+Open a shell inside the running CLI container:
+
+```bash
+docker exec -it auth-cli-auth-cli-1 sh
+```
+
+Then start the application:
+
+```bash
+./auth-cli
+```
+
+Expected output:
+
+```text
+===================================
+      Auth CLI Login System
+===================================
+Type 'help' to see commands
+
+auth-cli >
+```
+
+---
+
+## Stop Services
 
 ```bash
 docker compose down
+```
+
+---
+
+# QR Code Generation
+
+When MFA is enabled, a QR code is generated inside the container.
+
+Example:
+
+```text
+auth-cli > enable-2fa
+
+===================================
+2FA Setup
+===================================
+
+QR Code : data/qrcodes/shiva.png
+Secret  : XXXXXXXXXXXXXXXXX
+
+Next step:
+verify-2fa <otp>
+```
+
+---
+
+## Copy QR Code to Host Machine
+
+```bash
+docker cp auth-cli-auth-cli-1:/app/data/qrcodes/shiva.png .
+```
+
+This copies the generated QR code to your current directory.
+
+---
+
+## Open QR Code
+
+### macOS
+
+```bash
+open shiva.png
+```
+
+### Linux
+
+```bash
+xdg-open shiva.png
+```
+
+### Windows PowerShell
+
+```powershell
+start shiva.png
+```
+
+Scan the QR code using:
+
+- Google Authenticator
+- Microsoft Authenticator
+- Authy
+
+Then verify MFA:
+
+```bash
+verify-2fa 123456
 ```
 
 ---
@@ -384,10 +527,7 @@ docker compose down
 ## Register
 
 ```text
-auth-cli > register
-
-Username: shiva
-Password: ********
+auth-cli > register shiva Shiva123
 
 ✓ User registered successfully
 ```
@@ -397,10 +537,7 @@ Password: ********
 ## Login
 
 ```text
-auth-cli > login
-
-Username: shiva
-Password: ********
+auth-cli > login shiva Shiva123
 
 ✓ Login successful
 ```
@@ -412,9 +549,25 @@ Password: ********
 ```text
 auth-cli > enable-2fa
 
-QR Code: qrcodes/shiva.png
+===================================
+2FA Setup
+===================================
 
-Enter OTP:
+QR Code : data/qrcodes/shiva.png
+Secret  : XXXXXXXXXXXXXXXXX
+
+Next step:
+verify-2fa <otp>
+```
+
+---
+
+## Verify MFA
+
+```text
+auth-cli > verify-2fa 123456
+
+✓ MFA enabled successfully
 ```
 
 ---
@@ -423,6 +576,16 @@ Enter OTP:
 
 ```text
 auth-cli > whoami
+```
+
+---
+
+## Disable MFA
+
+```text
+auth-cli > disable-2fa yes
+
+✓ MFA disabled successfully
 ```
 
 ---
@@ -452,8 +615,8 @@ auth-cli > logout
 
 # Author
 
-Shiva
+**Shiva**
 
 Backend Developer | Go Developer
 
-Built as part of the Containerized CLI Login System Assignment.
+Built as part of the **Containerized CLI Login System Assignment**.

@@ -1,17 +1,17 @@
 package cmd
 
 import (
-	"bufio"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
 )
 
 var Disable2FACmd = &cobra.Command{
-	Use:   "disable-2fa",
-	Short: "Disable 2fa for current user",
+	Use:   "disable-2fa <confirmation>",
+	Short: "Disable MFA for current user",
+	Args:  cobra.ExactArgs(1),
+
 	RunE: func(cmd *cobra.Command, args []string) error {
 
 		if !deps.CLIContext.IsLoggedIn() {
@@ -28,23 +28,18 @@ var Disable2FACmd = &cobra.Command{
 			return fmt.Errorf("mfa is already disabled")
 		}
 
-		reader := bufio.NewReader(os.Stdin)
-
-		fmt.Print("Are you sure you want to disable MFA? (yes/no): ")
-
-		confirmation, err := reader.ReadString('\n')
-		if err != nil {
-			return err
-		}
-
-		confirmation = strings.TrimSpace(strings.ToLower(confirmation))
+		confirmation := strings.TrimSpace(
+			strings.ToLower(args[0]),
+		)
 
 		if confirmation != "yes" {
-			fmt.Errorf("operation cancelled")
+			fmt.Println("operation cancelled")
 			return nil
 		}
 
-		if err := deps.AuthService.Disable2FA(user.ID); err != nil {
+		if err := deps.AuthService.Disable2FA(
+			user.ID,
+		); err != nil {
 			return err
 		}
 

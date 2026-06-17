@@ -6,16 +6,18 @@ import (
 )
 
 type Context struct {
-	LoggedIn       bool
-	CurrentUser    *auth.User
-	CurrentSession *session.Session
+	LoggedIn         bool
+	CurrentUser      *auth.User
+	CurrentSession   *session.Session
+	PendingMFASecret string
 }
 
 func NewContext() *Context {
 	return &Context{
-		LoggedIn:       false,
-		CurrentUser:    nil,
-		CurrentSession: nil,
+		LoggedIn:         false,
+		CurrentUser:      nil,
+		CurrentSession:   nil,
+		PendingMFASecret: "",
 	}
 }
 
@@ -33,4 +35,12 @@ func (c *Context) Logout() {
 
 func (c *Context) IsLoggedIn() bool {
 	return c.LoggedIn
+}
+
+func (c *Context) SetPendingMFASecret(secret string) {
+	c.PendingMFASecret = secret
+}
+
+func (c *Context) ClearPendingMFASecret() {
+	c.PendingMFASecret = ""
 }

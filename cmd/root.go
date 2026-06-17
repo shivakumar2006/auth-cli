@@ -36,12 +36,13 @@ func Execute() error {
 
 func init() {
 	RootCmd.AddCommand(
-		RegisteredCmd,
+		RegisterCmd,
 		LoginCmd,
 		LogoutCmd,
 		WhoAmICmd,
 		Enable2FACmd,
 		Disable2FACmd,
+		Verify2FACmd,
 		HelpCmd,
 	)
 }

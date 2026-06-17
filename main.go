@@ -14,13 +14,6 @@ import (
 )
 
 func main() {
-	databaseURL := database.BuildDatabaseURL()
-
-	if err := database.RunMigrations(databaseURL); err != nil {
-		fmt.Printf("migration error: %v\n", err)
-		os.Exit(1)
-	}
-
 	// db connection
 	postgres, err := db.NewPostgresConnection()
 	if err != nil {
@@ -28,6 +21,13 @@ func main() {
 		os.Exit(1)
 	}
 	defer postgres.Close()
+
+	databaseURL := database.BuildDatabaseURL()
+
+	if err := database.RunMigrations(databaseURL); err != nil {
+		fmt.Printf("migration error: %v\n", err)
+		os.Exit(1)
+	}
 
 	// auth layer
 	authStorage := authdb.NewDatabase(
